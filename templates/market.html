@@ -13,15 +13,18 @@
         </tr>
     </thead>
     <tbody>
-        <tr><td>value id</td>
-        <td>value Name</td>
-        <td>value Barcode</td>
-        <td>value Price</td>
-        <td>
-        <button class="btn btn-outline btn-info">More info</button>
-        <button class=" btn btn-outline btn-success"> Call  </button>
-        </td>
+        {%for item in objects%}
+            <tr><td>{{item["id"]}}</td>
+                <!-- <td>{{item["id"]}}</td> -->
+                <td>{{item["name"]}}</td>
+                <td>{{item["barcode"]}}</td>
+                <td>₹{{item["price"]}}</td>
+                <td>
+                    <button class="btn btn-outline btn-info">More info</button>
+                    <button class=" btn btn-outline btn-success"> Call  </button>
+                </td>
             </tr>
+            {%endfor%}
     </tbody>
    </table>
 {%endblock%}

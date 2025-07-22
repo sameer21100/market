@@ -1,0 +1,42 @@
+{%extends "parent.html" %}
+{%block title%} Register{%endblock%}
+
+{%block content%} 
+<div class="container justify-content-center d-flex">
+    <form method="POST" action="/register">
+
+        <div class="mb-3">
+            <label for="username">UserName</label>
+            <br>
+            <input type="text" placeholder="Username" name="username">
+        </div>
+
+        <div class ="mb-3">
+            <label for="email">Email</label>
+            <br>
+            <input type="email" placeholder="Email" name="email">
+        </div>
+        <div class="mb-3">
+            <label for="password">Password</label>
+            <br>
+            <input type="password" placeholder="Enter you password" name="password">
+
+        </div>
+        <div class="mb-3">
+        <label for="confirm_password">Confirm Password</label>
+        <br>
+        <input type="password" placeholder="Enter you password again" name="confirm_password">
+    </div>
+        <button type="submit" class="btn btn-primary ">Register</button>
+        
+
+
+
+    </form>
+
+
+</div>
+
+
+
+{%endblock%}
