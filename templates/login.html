@@ -1,0 +1,25 @@
+{% extends "parent.html" %}
+{%block title%}Login{%endblock%}
+{%block content%}
+<div class="container d-flex justify-content-center">
+    <form action="" method="POST">
+    <div class ="mb-3">
+        <label for="username">Username</label>
+        <br>
+        <input type="text" palceholder="Username" name="username">
+    </div>
+    <div class ="mb-3">
+        <label for="password">Password</label>
+        <br>
+        <input type="password" name="password">
+    </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+
+    </form>
+
+
+
+</div>
+
+
+{%endblock%}
