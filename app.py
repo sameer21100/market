@@ -119,6 +119,12 @@ def login():
         if user and check_password_hash(user["password_hash"],password):
             session["user"]=username
             session["budget"]=user["budget"]
+            # db=get_conn()
+            # cursor=db.cursor()
+            # cursor.execute('''
+            # Select * from user
+            # ''')
+            # session["description"]=
             flash("login successfull")
             return redirect(url_for("main"))
         else:
