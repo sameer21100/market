@@ -107,7 +107,7 @@ def main():
 def login():
     if "user" in session:
         flash("You are already logged in")
-        return redirect(url_for("home"))
+        return redirect(url_for("main"))
     if request.method== "POST":
         username=request.form["username"]
         password=request.form["password"]
