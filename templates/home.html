@@ -10,7 +10,10 @@
     <div class="card-body" style="color: black">
         <h5 class="card-title">Welcome !! </h5>
         <p class="card-text">To explore the market click on the link below</p>
-        <a href="{{url_for('market')}}" class="btn btn-primary">Get Started</a>
+        <form action="" method="POST">
+            <input type="hidden" name="form_type" value="redirect">
+            <button type="submit"  class="btn btn-primary">Get Started </button>
+    </form>
     </div>
 </div>
 

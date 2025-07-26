@@ -111,23 +111,31 @@ def get_users():
     return data1
 
 
-@app.route("/")
-@app.route("/home")
+@app.route("/",methods=["GET","POST"])
+@app.route("/home",methods=["GET","POST"])
 def main():
-
+    print("inasdfasdfasdfasdfasdfasdfasdside")
+    print(request.form.get('form_type'))
+    if request.method=="POST" and request.form.get('form_type'):
+        if "user" in session:
+            return redirect(url_for('market'))
+        else:
+            flash("Please login first")
+            return redirect(url_for('register'))
     # drop()
     # create_db()
-    db=get_conn()
-    cursor=db.cursor()
-    cursor.execute("select * from users")
-    data=cursor.fetchall()
+    # db=get_conn()
+    # cursor=db.cursor()
+    # cursor.execute("select * from users")
+    # data=cursor.fetchall()
     
-    data1=get_users()
-    db.close()
+    # data1=get_users()
+    # db.close()
     # alter_items_table()
-    return render_template("home.html",users=data1)
+    return render_template("home.html")
 @app.route("/add",methods=["GET","POST"])
 def add():
+
     if "user" in session:
         if request.method=="GET":
             return render_template("add.html")
