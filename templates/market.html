@@ -21,10 +21,14 @@
                 <td>{{item["barcode"]}}</td>
                 <td>₹{{item["price"]}}</td>
                 <td>
-                    <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#modal-{{item['id']}}">More info</button>   
-                    <button class=" btn btn-outline btn-success"> Call  </button>
+                    <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#modal-{{item['id']}}">More info</button>  
+                    <form action="" method="POST" style="display:inline" >
+                        <input type="hidden" name="form_type" value="pay">
+                        <button class=" btn btn-outline btn-success"  style="display: inline;"  onclick="return confirm('This will take 51 credits from your account!!');"> Call  </button>
+                    </form> 
                     {%if session['id']==item['owner_id']%}
                         <form method="POST" action="/delete/{{item['id']}}" style="display:inline;">
+                            <input type="hidden" name="form_type" value="delete">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">Delete</button>
                         </form>
                     {%endif%}

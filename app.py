@@ -15,10 +15,32 @@ def get_conn():
 #     cursor=db.cursor()
 #     cursor.execute("drop table if exists items")
 #     db.commit()
-# def create_db():
-#     db=get_conn()
-#     cursor=db.cursor()
-    
+def create_db():
+    db=get_conn()
+    cursor=db.cursor()
+    # cursor.execute('''
+    #     alter table users rename to user_old
+        
+       
+    # ''')       
+    # cursor.execute('''
+    # create table if not exists users(
+    #     id integer primary key autoincrement,
+    #     username varchar(30) not null unique,
+    #     email varchar(100) not null unique,
+    #     password_hash varchar(60) not null,
+    #     budget int not null default 50)
+    # ''') 
+    db.commit()
+    cursor.execute('''
+        delete from users
+        ''')
+    cursor.execute(''' 
+        insert into users(id,username,email,password_hash,budget)
+        select id ,username,email,password_hash,budget from user_old
+    ''')
+    db.commit()
+
 #     cursor.execute('''
 #     create table if not exists users(
 #     id INTEGER primary key autoincrement,
@@ -92,6 +114,7 @@ def get_users():
 @app.route("/")
 @app.route("/home")
 def main():
+
     # drop()
     # create_db()
     db=get_conn()
