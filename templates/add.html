@@ -1,0 +1,30 @@
+{%extends "parent.html"%}
+{%block title%}
+
+{%endblock%}
+
+{%block content%}
+    <form action="" method="POST">
+        <label for="name">Item name</label>
+        <br>
+        <input type="text" name="name" placeholder="Enter item's name">
+        <br>
+        <br>
+        <label for="barcode">Barcode</label>
+        <br>
+        
+        <input type="text" name="barcode" placeholder="Enter item's barcode">
+<br>
+<br>
+        <label for="price">Item price</label>
+        <br>
+        <input type="text" name="price" placeholder="Enter item's price">
+<br><br>
+        <label for="description">Description</label>
+        <br>
+        <input type="text" name="description" placeholder="Enter item's Description">
+<br>
+<br>
+        <input type="submit" class="btn btn-info" value="Add item">
+    </form>
+{%endblock%}

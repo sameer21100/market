@@ -25,6 +25,14 @@
             <li class="nav-item">
               <a class="nav-link" href="{{url_for('market')}}">Market</a>
             </li>
+
+            {%if 'user' in session %}
+            
+            <li class="nav-item">
+                <a class="nav-link username" href="/add"  >Add items</a>
+              </li>
+            {%endif %}
+
             </ul>
             <ul class="navbar-nav ml-auto">
             {% if 'user' not  in session %}

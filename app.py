@@ -103,6 +103,32 @@ def main():
     db.close()
     # alter_items_table()
     return render_template("home.html",users=data1)
+@app.route("/add",methods=["GET","POST"])
+def add():
+    if "user" in session:
+        if request.method=="GET":
+            return render_template("add.html")
+        else:
+
+            name=request.form["name"]
+            barcode=request.form["barcode"]
+            price=request.form["price"]
+            description=request.form["description"]
+            owner_id=session["id"]
+
+            db=get_conn()
+            cursor=db.cursor()
+            cursor.execute('''
+            insert into items (name,barcode,price,description,owner_id)
+            values(?,?,?,?,?)''',
+            (name,barcode,price,description,owner_id))
+            db.commit()
+            flash("Item added successfully")
+            return redirect(url_for('market'))
+
+    else:
+        flask("Please login first")
+        return redirect(url_for("login"))
 @app.route("/login",methods=["GET","POST"])
 def login():
     if "user" in session:
@@ -119,6 +145,8 @@ def login():
         if user and check_password_hash(user["password_hash"],password):
             session["user"]=username
             session["budget"]=user["budget"]
+            print(user["id"])
+            session["id"]=user["id"]
             # db=get_conn()
             # cursor=db.cursor()
             # cursor.execute('''
@@ -176,12 +204,21 @@ def register():
         db.commit()
         db.close()
         return redirect(url_for("login"))
+@app.route("/delete/<id>",methods=["POST"])
+def delete(id):
+    db=get_conn()
+    cursor=db.cursor()
+    cursor.execute(''' 
+    delete from items where id=? and owner_id=?
+    ''',(id,session['id']))
+    db.commit()
+    return redirect(url_for("market"))
 @app.route("/market")
 def market():
     if "user" in session:
         db=get_conn()
         cursor=db.cursor()
-        cursor.execute("select * from items")
+        cursor.execute("select * from items order by id desc")
         data=cursor.fetchall()
         db.close()
         return render_template("market.html",objects=data)

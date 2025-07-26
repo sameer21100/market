@@ -4,7 +4,7 @@
 <table class ="table table-hover table-dark" >
     <thead>
         <tr>    
-            <th scope="col">ID</th>
+            <!-- <th scope="col">ID</th> -->
             <th scope="col" >Name</th>
             <th scope="col">Barcode</th>
             <th scope="col">Price</th>
@@ -14,7 +14,8 @@
     </thead>
     <tbody>
         {%for item in objects%}
-            <tr><td>{{item["id"]}}</td>
+            <tr>
+                <!-- <td>{{item["id"]}}</td> -->
                 <!-- <td>{{item["id"]}}</td> -->
                 <td>{{item["name"]}}</td>
                 <td>{{item["barcode"]}}</td>
@@ -22,6 +23,11 @@
                 <td>
                     <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#modal-{{item['id']}}">More info</button>   
                     <button class=" btn btn-outline btn-success"> Call  </button>
+                    {%if session['id']==item['owner_id']%}
+                        <form method="POST" action="/delete/{{item['id']}}" style="display:inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">Delete</button>
+                        </form>
+                    {%endif%}
                 </td>
             </tr>
             <div class="modal fade" id="modal-{{item['id']}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
