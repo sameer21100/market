@@ -30,7 +30,7 @@
             <td>
               <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#modal-{{item['id']}}">More
                 info</button>
-              <form action="/reduce/51" method="POST" style="display:inline">
+              <form action="/reduce/500" method="POST" style="display:inline">
                 <input type="hidden" name="form_type" value="pay">
                 <button class=" btn btn-outline btn-success" style="display: inline;"
                   onclick="return confirm('This will take 51 credits from your account!!');"> Call </button>
@@ -72,6 +72,9 @@
     <div class="col-4">
 
       <h3> Your items</h3>
+      <!-- {% if objects|length == 0 %}
+      <h4 >No items found. Add some items to get started!</h4>
+    {% endif %} -->
           {%for item in objects%}
             {% if item['owner_id']==session['id']%}
             

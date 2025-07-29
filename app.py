@@ -244,22 +244,76 @@ def delete(id):
     ''',(id,session['id']))
     db.commit()
     return redirect(url_for("market"))
+
+@app.route("/create_payment/<int:val>", methods=["GET"])
+def create_payment(val):
+    import razorpay
+    if "user" not in session:
+        flash("Please login first")
+        return redirect(url_for("login"))
+
+    if val < 500:
+        flash("Minimum amount should be ₹500")
+        return redirect(url_for("market"))
+
+    client = razorpay.Client(auth=("rzp_test_ToAMfo3brrqbUO", "vnJ4yRy8dIu7w5rlEFZ9YgKI"))
+    order_data = {
+        "amount": val * 100,  # amount in paise
+        "currency": "INR",
+        "payment_capture": 1
+    }
+    payment = client.order.create(order_data)
+    return render_template("payment.html", payment=payment, val=val,key_id="rzp_test_ToAMfo3brrqbUO")
+
+@app.route("/payment_success", methods=["POST"])
+def payment_success():
+    from flask import request
+    import razorpay
+
+    client = razorpay.Client(auth=("rzp_test_ToAMfo3brrqbUO", "vnJ4yRy8dIu7w5rlEFZ9YgKI"))
+
+    data = request.form
+    try:
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': data['razorpay_order_id'],
+            'razorpay_payment_id': data['razorpay_payment_id'],
+            'razorpay_signature': data['razorpay_signature']
+        })
+    except:
+        flash("Payment verification failed")
+        return redirect(url_for("market"))
+
+    val = int(request.form['val'])
+
+    session['budget'] += val
+    db = get_conn()
+    cursor = db.cursor()
+    cursor.execute('''
+        UPDATE users
+        SET budget = ?
+        WHERE id = ?
+    ''', (session['budget'], session['id']))
+    db.commit()
+    db.close()
+    flash(f"₹{val} added to your budget")
+    return redirect(url_for("market"))
+
 @app.route("/reduce/<val>",methods=["POST"])
 def reduce(val):
-    if session['budget']<51:
-        flash("No enough balance")
-        return redirect(url_for('market'))
+    if session['budget'] < int(val):
+        flash("Not enough balance. Please add funds.")
+        return redirect(url_for("create_payment", val=val))
     else:
-        session['budget']=session['budget']-51
-        db=get_conn()
-        cursor=db.cursor()
-
+        session['budget'] -= int(val)
+        db = get_conn()
+        cursor = db.cursor()
         cursor.execute('''
             update users
             set budget=? 
             where id=?
-        ''' ,(session['budget'],session['id']))
+        ''', (session['budget'], session['id']))
         db.commit()
+        db.close()
         return redirect(url_for('market'))
 @app.route("/market")
 def market():
