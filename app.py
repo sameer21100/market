@@ -256,21 +256,21 @@ def create_payment(val):
         flash("Minimum amount should be ₹500")
         return redirect(url_for("market"))
 
-    client = razorpay.Client(auth=("rzp_test_ToAMfo3brrqbUO", "vnJ4yRy8dIu7w5rlEFZ9YgKI"))
+    client = razorpay.Client(auth=("rzp_live_PrDxVO5r3nbrTB", "60sCmL6zRZOO91f4Yv2VzzCM"))
     order_data = {
         "amount": val * 100,  # amount in paise
         "currency": "INR",
         "payment_capture": 1
     }
     payment = client.order.create(order_data)
-    return render_template("payment.html", payment=payment, val=val,key_id="rzp_test_ToAMfo3brrqbUO")
+    return render_template("payment.html", payment=payment, val=val,key_id="rzp_live_PrDxVO5r3nbrTB")
 
 @app.route("/payment_success", methods=["POST"])
 def payment_success():
     from flask import request
     import razorpay
 
-    client = razorpay.Client(auth=("rzp_test_ToAMfo3brrqbUO", "vnJ4yRy8dIu7w5rlEFZ9YgKI"))
+    client = razorpay.Client(auth=("rzp_live_PrDxVO5r3nbrTB", "60sCmL6zRZOO91f4Yv2VzzCM"))
 
     data = request.form
     try:
