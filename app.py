@@ -244,8 +244,26 @@ def delete(id):
     ''',(id,session['id']))
     db.commit()
     return redirect(url_for("market"))
+@app.route("/reduce/<val>",methods=["POST"])
+def reduce(val):
+    if session['budget']<51:
+        flash("No enough balance")
+        return redirect(url_for('market'))
+    else:
+        session['budget']=session['budget']-51
+        db=get_conn()
+        cursor=db.cursor()
+
+        cursor.execute('''
+            update users
+            set budget=? 
+            where id=?
+        ''' ,(session['budget'],session['id']))
+        db.commit()
+        return redirect(url_for('market'))
 @app.route("/market")
 def market():
+
     if "user" in session:
         db=get_conn()
         cursor=db.cursor()
@@ -256,5 +274,5 @@ def market():
     else:
         flash(f"Please login first {random.randint(0,9)}","error")
         return redirect(url_for("login"))
-# if __name__=="__main__":
-#     app.run(host="0.0.0.0",port=5050)
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=5050,debug="true")

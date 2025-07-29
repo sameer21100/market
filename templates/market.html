@@ -1,65 +1,96 @@
 {%extends "parent.html"%}
 {%block title%}Market{%endblock%}
 {%block content%}
-<table class ="table table-hover table-dark" >
-    <thead>
-        <tr>    
+<div class="container">
+  <div class="row">
+    <div class="col-8">
+      <h3>
+        Available items on the market
+      </h3>
+      <table class="table table-hover table-dark">
+        <thead>
+          <tr>
             <!-- <th scope="col">ID</th> -->
-            <th scope="col" >Name</th>
+            <th scope="col">Name</th>
             <th scope="col">Barcode</th>
             <th scope="col">Price</th>
             <th> Options</th>
 
-        </tr>
-    </thead>
-    <tbody>
-        {%for item in objects%}
-            <tr>
-                <!-- <td>{{item["id"]}}</td> -->
-                <!-- <td>{{item["id"]}}</td> -->
-                <td>{{item["name"]}}</td>
-                <td>{{item["barcode"]}}</td>
-                <td>₹{{item["price"]}}</td>
-                <td>
-                    <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#modal-{{item['id']}}">More info</button>  
-                    <form action="" method="POST" style="display:inline" >
-                        <input type="hidden" name="form_type" value="pay">
-                        <button class=" btn btn-outline btn-success"  style="display: inline;"  onclick="return confirm('This will take 51 credits from your account!!');"> Call  </button>
-                    </form> 
-                    {%if session['id']==item['owner_id']%}
-                        <form method="POST" action="/delete/{{item['id']}}" style="display:inline;">
-                            <input type="hidden" name="form_type" value="delete">
-                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">Delete</button>
-                        </form>
-                    {%endif%}
-                </td>
-            </tr>
-            <div class="modal fade" id="modal-{{item['id']}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title" style="color:black" id="exampleModalLongTitle">Description</h5>
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    </div>
-                    <div class="modal-body">
-                    <h5 style="color:black">The description of the product: {{item["name"]}}</h5>
-                   <p style="color:black">{{item["description"]}}</p>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                      <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
-                    </div>
-                  </div>
+          </tr>
+        </thead>
+        <tbody>
+
+          {%for item in objects%}
+          <tr>
+            <!-- <td>{{item["id"]}}</td> -->
+            <!-- <td>{{item["id"]}}</td> -->
+            <td>{{item["name"]}}</td>
+            <td>{{item["barcode"]}}</td>
+            <td>₹{{item["price"]}}</td>
+            <td>
+              <button class="btn btn-outline btn-info" data-toggle="modal" data-target="#modal-{{item['id']}}">More
+                info</button>
+              <form action="/reduce/51" method="POST" style="display:inline">
+                <input type="hidden" name="form_type" value="pay">
+                <button class=" btn btn-outline btn-success" style="display: inline;"
+                  onclick="return confirm('This will take 51 credits from your account!!');"> Call </button>
+              </form>
+              {%if session['id']==item['owner_id']%}
+              <form method="POST" action="/delete/{{item['id']}}" style="display:inline;">
+                <input type="hidden" name="form_type" value="delete">
+                <button type="submit" class="btn btn-danger"
+                  onclick="return confirm('Are you sure you want to delete this item?');">Delete</button>
+              </form>
+              {%endif%}
+            </td>
+          </tr>
+          <div class="modal fade" id="modal-{{item['id']}}" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" style="color:black" id="exampleModalLongTitle">Description</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <h5 style="color:black">The description of the product: {{item["name"]}}</h5>
+                  <p style="color:black">{{item["description"]}}</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
                 </div>
               </div>
-            {%endfor%}
-    </tbody>
-   </table>
-   <!-- Your page content here -->
+            </div>
+          </div>
+          {%endfor%}
+        </tbody>
+      </table>
+    </div>
+    <div class="col-4">
 
-<!-- Modal goes at the end -->
-<!-- Modal -->
+      <h3> Your items</h3>
+          {%for item in objects%}
+            {% if item['owner_id']==session['id']%}
+            
+              <div class ="row">
+              <div class="col-5">
+              {{item['name']}}
+            </div>
+              {{item['price']}}
+            </div>
+            <br>
+            
+            
+              {%endif%}
+          {%endfor%}
+    </div>
+    <!-- Your page content here -->
 
+    <!-- Modal goes at the end -->
+    <!-- Modal -->
+  </div>
+</div>
 {%endblock%}
