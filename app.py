@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request, session, flash,redirect,url_for
+from flask import Flask, render_template,request, session, flash,redirect,url_for,send_file
 import secrets
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,6 +6,7 @@ import sqlite3
 
 app=Flask(__name__)
 app.secret_key='123123123123'
+
 @app.route('/download-db')
 def download_db():
     return send_file('database.db', as_attachment=True)
