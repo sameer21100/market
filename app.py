@@ -6,6 +6,9 @@ import sqlite3
 
 app=Flask(__name__)
 app.secret_key='123123123123'
+@app.route('/download-db')
+def download_db():
+    return send_file('database.db', as_attachment=True)
 def get_conn():
     conn=sqlite3.connect("database.db")
     conn.row_factory=sqlite3.Row

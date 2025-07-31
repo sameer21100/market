@@ -33,7 +33,7 @@
               <form action="/reduce/500" method="POST" style="display:inline">
                 <input type="hidden" name="form_type" value="pay">
                 <button class=" btn btn-outline btn-success" style="display: inline;"
-                  onclick="return confirm('This will take 500 credits from your account!!');"> Subscribe </button>
+                  onclick="return confirm('This will take 500 credits from your account!!');"> Contact seller </button>
               </form>
               {%if session['id']==item['owner_id']%}
               <form method="POST" action="/delete/{{item['id']}}" style="display:inline;">
