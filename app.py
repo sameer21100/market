@@ -5,8 +5,10 @@ import secrets
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
-from dotenv import load_dotenv
-load_dotenv()  
+if os.environ.get("FLASK_ENV") != "production":
+    from dotenv import load_dotenv
+    load_dotenv()
+
 
 app=Flask(__name__)
 app.secret_key='123123123123'
