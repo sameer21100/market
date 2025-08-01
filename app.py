@@ -1,4 +1,4 @@
-
+import razorpay
 import os
 from flask import Flask, render_template,request, session, flash,redirect,url_for,send_file
 import secrets
@@ -291,17 +291,18 @@ def delete(id):
 
 @app.route("/create_payment/<int:val>", methods=["GET"])
 def create_payment(val):
-    import razorpay
+    
 
     if "user" not in session:
         flash("Please login first")
         return redirect(url_for("login"))
 
-    if val < 500:
+    if val < 50:
         flash("Minimum amount should be ₹500")
         return redirect(url_for("market"))
 
     client = razorpay.Client(auth=(RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET ))
+    print(f"here is the issue mothaforka{RAZORPAY_KEY_ID}")
     # client = razorpay.Client(auth=("rzp_live_PrDxVO5r3nbrTB", "60sCmL6zRZOO91f4Yv2VzzCM"))
     order_data = {
         "amount": val * 100,  # amount in paise
