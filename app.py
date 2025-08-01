@@ -380,5 +380,5 @@ def market():
     else:
         flash(f"Please login first {random.randint(0,9)}","error")
         return redirect(url_for("login"))
-if __name__=="__main__":
-    app.run(host="0.0.0.0",port=5050,debug="true")
+# if __name__=="__main__":
+#     app.run(host="0.0.0.0",port=5050,debug="true")
