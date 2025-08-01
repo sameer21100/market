@@ -6,9 +6,10 @@ import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 # if os.environ.get("FLASK_ENV") != "production":
-#     from dotenv import load_dotenv
-#     load_dotenv()
-
+from dotenv import load_dotenv
+load_dotenv()
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 app=Flask(__name__)
 app.secret_key='123123123123'
@@ -25,34 +26,34 @@ def get_conn():
 #     cursor=db.cursor()
 #     cursor.execute("drop table if exists items")
 #     db.commit()
-def create_db():
-    db=get_conn()
-    cursor=db.cursor()
+# def create_db():
+#     db=get_conn()
+#     cursor=db.cursor()
     # cursor.execute('''
     #     alter table users rename to user_old2
     # ''')       
-    cursor.execute('''
-    create table if not exists users(
-        id integer primary key autoincrement,
-        username varchar(30) not null unique,
-        email varchar(100) not null unique,
-        password_hash varchar(60) not null,
-        budget int not null default 50,
-        phone varchar(10) default null,
-        ipaddress varchar(50000) default null
-        )
+    # cursor.execute('''
+    # create table if not exists users(
+    #     id integer primary key autoincrement,
+    #     username varchar(30) not null unique,
+    #     email varchar(100) not null unique,
+    #     password_hash varchar(60) not null,
+    #     budget int not null default 50,
+    #     phone varchar(10) default null,
+    #     ipaddress varchar(50000) default null
+    #     )
 
-    ''') 
+    # ''') 
     # db.commit()
-    cursor.execute(''' 
-        insert into users(id,username,email,password_hash,budget,phone)
-        select id ,username,email,password_hash,budget,phone from user_old2
-    ''')
-    cursor.execute('''
-        drop table user_old2
-        ''')
-    db.commit()
-    db.close()
+    # cursor.execute(''' 
+    #     insert into users(id,username,email,password_hash,budget,phone)
+    #     select id ,username,email,password_hash,budget,phone from user_old2
+    # ''')
+    # cursor.execute('''
+    #     drop table user_old2
+    #     ''')
+    # db.commit()
+    # db.close()
 
 #     cursor.execute('''
 #     create table if not exists users(
@@ -107,8 +108,8 @@ def insert():
     values(?,?,?,?) ''',("BMW","1asd23123123",1700000,"M3","",1))
     # cursor.execute('''insert into users(username,email,password_hash) 
     # values(?,?,?)''',("sameasderydv","sam@1g.com","123455"))
-    db.commit()
-    db.close()
+    # db.commit()
+    # db.close()
 
 def get_items():
     db=get_conn()
@@ -261,6 +262,7 @@ def register():
             flash("Password not equal",category='danger')
             return redirect(url_for("register"))
     
+
         
         db=get_conn()
         cursor=db.cursor()
@@ -291,8 +293,6 @@ def delete(id):
 def create_payment(val):
     import razorpay
 
-    RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
-    RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
     if "user" not in session:
         flash("Please login first")
         return redirect(url_for("login"))
