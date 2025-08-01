@@ -6,11 +6,11 @@ import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 # if os.environ.get("FLASK_ENV") != "production":
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-
+print(RAZORPAY_KEY_SECRET)
 app=Flask(__name__)
 app.secret_key='123123123123'
 
@@ -100,29 +100,29 @@ def get_conn():
 #     cursor.execute('''drop table if exists users_old''')
 #     db.commit()
 #     db.close()
-def insert():
+# def insert():
 
-    db=get_conn()
-    cursor=db.cursor()
-    cursor.execute('''insert into items (name,barcode,price,description)
-    values(?,?,?,?) ''',("BMW","1asd23123123",1700000,"M3","",1))
+#     db=get_conn()
+#     cursor=db.cursor()
+#     cursor.execute('''insert into items (name,barcode,price,description)
+#     values(?,?,?,?) ''',("BMW","1asd23123123",1700000,"M3","",1))
     # cursor.execute('''insert into users(username,email,password_hash) 
     # values(?,?,?)''',("sameasderydv","sam@1g.com","123455"))
     # db.commit()
     # db.close()
 
-def get_items():
-    db=get_conn()
-    cursor=db.cursor()
-    cursor.execute("select * from items")
-    data1=cursor.fetchall()
-    return data1
-def get_users():
-    db=get_conn()
-    cursor=db.cursor()
-    cursor.execute("select * from users")
-    data1=cursor.fetchall()
-    return data1
+# def get_items():
+#     db=get_conn()
+#     cursor=db.cursor()
+#     cursor.execute("select * from items")
+#     data1=cursor.fetchall()
+#     return data1
+# def get_users():
+#     db=get_conn()
+#     cursor=db.cursor()
+#     cursor.execute("select * from users")
+#     data1=cursor.fetchall()
+#     return data1
 
 
 @app.route("/",methods=["GET","POST"])
