@@ -23,27 +23,29 @@ def create_db():
     db=get_conn()
     cursor=db.cursor()
     # cursor.execute('''
-    #     alter table users rename to user_old
+    #     alter table users rename to user_old1
         
        
     # ''')       
-    # cursor.execute('''
-    # create table if not exists users(
-    #     id integer primary key autoincrement,
-    #     username varchar(30) not null unique,
-    #     email varchar(100) not null unique,
-    #     password_hash varchar(60) not null,
-    #     budget int not null default 50)
-    # ''') 
-    db.commit()
     cursor.execute('''
-        delete from users
-        ''')
+    create table if not exists users(
+        id integer primary key autoincrement,
+        username varchar(30) not null unique,
+        email varchar(100) not null unique,
+        password_hash varchar(60) not null,
+        budget int not null default 50,
+        phone varchar(10) default null)
+    ''') 
+    # db.commit()
     cursor.execute(''' 
         insert into users(id,username,email,password_hash,budget)
-        select id ,username,email,password_hash,budget from user_old
+        select id ,username,email,password_hash,budget from user_old1
     ''')
+    # cursor.execute('''
+    #     drop table user_old1
+    #     ''')
     db.commit()
+    db.close()
 
 #     cursor.execute('''
 #     create table if not exists users(
@@ -118,8 +120,9 @@ def get_users():
 @app.route("/",methods=["GET","POST"])
 @app.route("/home",methods=["GET","POST"])
 def main():
+    # create_db()
     print("inasdfasdfasdfasdfasdfasdfasdside")
-    print(request.form.get('form_type'))
+    # print(request.form.get('form_type'))
     if request.method=="POST" and request.form.get('form_type'):
         if "user" in session:
             return redirect(url_for('market'))
@@ -137,14 +140,34 @@ def main():
     # db.close()
     # alter_items_table()
     return render_template("home.html")
+@app.route("/add_user_phone/", methods=["GET","POST"])
+def add_user_phone():
+    if session["phone"] is not None :
+        flash("Phone number already added")
+        return redirect(url_for("main"))
+    if request.method=="POST":
+        phone=request.form["phone"]
+        session["phone"]=phone
+        db=get_conn()
+        cursor=db.cursor()
+        cursor.execute('''
+        update users set phone=? where id=? 
+        ''',(phone,session["id"]))
+        db.commit()
+        db.close()
+        flash("Number added successfull")
+        return redirect(url_for("add"))
+    else:
+        return render_template("add_user_phone.html")
 @app.route("/add",methods=["GET","POST"])
 def add():
 
     if "user" in session:
-        if request.method=="GET":
-            return render_template("add.html")
-        else:
-
+        print(f"{session['phone']} is the phone number")
+        if session["phone"] is None:
+            flash("Please enter your phone number first")
+            return redirect(url_for("add_user_phone"))
+        if request.method=="POST":
             name=request.form["name"]
             barcode=request.form["barcode"]
             price=request.form["price"]
@@ -180,7 +203,9 @@ def login():
         if user and check_password_hash(user["password_hash"],password):
             session["user"]=username
             session["budget"]=user["budget"]
-            print(user["id"])
+            print(user["budget"])
+            # print(user["id"])
+            session["phone"]=user["phone"]
             session["id"]=user["id"]
             # db=get_conn()
             # cursor=db.cursor()
@@ -303,13 +328,13 @@ def payment_success():
     flash(f"₹{val} added to your budget")
     return redirect(url_for("market"))
 
-@app.route("/reduce/<val>",methods=["POST"])
-def reduce(val):
+@app.route("/reduce/<int:val>/<int:owner_id>", methods=["POST"])
+def reduce(val,owner_id):
     if session['budget'] < int(val):
         flash("Not enough balance. Please add funds.")
         return redirect(url_for("create_payment", val=val))
     else:
-        session['budget'] -= int(val)
+        session['budget'] =session['budget']- int(val)
         db = get_conn()
         cursor = db.cursor()
         cursor.execute('''
@@ -317,8 +342,16 @@ def reduce(val):
             set budget=? 
             where id=?
         ''', (session['budget'], session['id']))
+        owner_id=int(owner_id)
+        cursor.execute('''
+            select * from users where id=?
+        ''',(owner_id,))
+        phone_no_of_owner=cursor.fetchone()["phone"]
+        print(phone_no_of_owner)
+        flash(f"The phone number of the user is {phone_no_of_owner}")
         db.commit()
         db.close()
+        # session["phone_no_of_user"]=phone_no_of_owner["phone"]
         return redirect(url_for('market'))
 @app.route("/market")
 def market():
