@@ -10,7 +10,7 @@ import sqlite3
 # load_dotenv()
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-print(f"first motha fuka issue  {RAZORPAY_KEY_SECRET}")
+# print(f"first motha fuka issue  {RAZORPAY_KEY_SECRET}")
 app=Flask(__name__)
 app.secret_key='123123123123'
 
@@ -302,7 +302,7 @@ def create_payment(val):
         return redirect(url_for("market"))
 
     client = razorpay.Client(auth=(RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET ))
-    print(f"here is the issue mothaforka{RAZORPAY_KEY_ID}")
+    # print(f"here is the issue mothaforka{RAZORPAY_KEY_ID}")
     # client = razorpay.Client(auth=("rzp_live_PrDxVO5r3nbrTB", "60sCmL6zRZOO91f4Yv2VzzCM"))
     order_data = {
         "amount": val * 100,  # amount in paise
