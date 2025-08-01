@@ -129,7 +129,7 @@ def get_conn():
 @app.route("/home",methods=["GET","POST"])
 def main():
     # create_db()
-    print("inasdfasdfasdfasdfasdfasdfasdside")
+    # print(f"{os.environ.get('FLASK_ENV')} falsk asdlfalsdjfaksd")
     # print(request.form.get('form_type'))
     if request.method=="POST" and request.form.get('form_type'):
         if "user" in session:
@@ -368,6 +368,15 @@ def reduce(val,owner_id):
         db.close()
         # session["phone_no_of_user"]=phone_no_of_owner["phone"]
         return redirect(url_for('market'))
+@app.route("/users")
+def user():
+    db=get_conn()
+    cursor=db.cursor()
+    cursor.execute('''
+    select * from users
+    ''')
+    users=cursor.fetchall()
+    return render_template("list_users.html",users=users)
 @app.route("/market")
 def market():
 
