@@ -128,6 +128,7 @@ def get_conn():
 @app.route("/",methods=["GET","POST"])
 @app.route("/home",methods=["GET","POST"])
 def main():
+    flash("No working cuzz I need to change the database system!! Everything's broke ")
     # create_db()
     # print(f"{os.environ.get('FLASK_ENV')} falsk asdlfalsdjfaksd")
     # print(request.form.get('form_type'))
@@ -200,6 +201,7 @@ def add():
         return redirect(url_for("login"))
 @app.route("/login",methods=["GET","POST"])
 def login():
+    
     if "user" in session:
         flash("You are already logged in")
         return redirect(url_for("main"))
