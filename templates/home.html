@@ -5,7 +5,7 @@
 <br>
 <div class="card text-center mx-auto" style="width: 70%; border-radius: 12%;">
     <br>
-    <img src="{{ url_for('static', filename='images/image.png') }}" class="card-img-top mx-auto d-block" style="width: 500px ;border-radius: 12%;" alt="Sameer's Market">
+    <img src="{{ url_for('static', filename='images/image.png') }}" class="card-img-top mx-auto d-block img-fluid" style="width: 250px ;border-radius: 12%;" alt="Sameer's Market">
     
     <div class="card-body" style="color: black">
         <h5 class="card-title">Welcome !! </h5>
@@ -23,5 +23,9 @@
         <p>{{item.password_hash}}</p> -->
     <!-- {%endfor%} -->
      
+
+{%endblock%}
+
+{%block footer%}
 
 {%endblock%}

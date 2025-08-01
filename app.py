@@ -1,8 +1,12 @@
+
+import os
 from flask import Flask, render_template,request, session, flash,redirect,url_for,send_file
 import secrets
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+from dotenv import load_dotenv
+load_dotenv()  
 
 app=Flask(__name__)
 app.secret_key='123123123123'
@@ -23,9 +27,7 @@ def create_db():
     db=get_conn()
     cursor=db.cursor()
     # cursor.execute('''
-    #     alter table users rename to user_old1
-        
-       
+    #     alter table users rename to user_old2
     # ''')       
     cursor.execute('''
     create table if not exists users(
@@ -34,16 +36,19 @@ def create_db():
         email varchar(100) not null unique,
         password_hash varchar(60) not null,
         budget int not null default 50,
-        phone varchar(10) default null)
+        phone varchar(10) default null,
+        ipaddress varchar(50000) default null
+        )
+
     ''') 
     # db.commit()
     cursor.execute(''' 
-        insert into users(id,username,email,password_hash,budget)
-        select id ,username,email,password_hash,budget from user_old1
+        insert into users(id,username,email,password_hash,budget,phone)
+        select id ,username,email,password_hash,budget,phone from user_old2
     ''')
-    # cursor.execute('''
-    #     drop table user_old1
-    #     ''')
+    cursor.execute('''
+        drop table user_old2
+        ''')
     db.commit()
     db.close()
 
@@ -184,8 +189,11 @@ def add():
             flash("Item added successfully")
             return redirect(url_for('market'))
 
+        elif request.method=="GET":
+           
+            return render_template("add.html")
     else:
-        flask("Please login first")
+        flash("Please login to view this page")
         return redirect(url_for("login"))
 @app.route("/login",methods=["GET","POST"])
 def login():
@@ -237,6 +245,8 @@ def register():
         session["csrf_token"]=token
         return render_template("register.html",csrf_token=token)
     else:
+        ip_address = request.remote_addr
+        user_agent = request.headers.get('User-Agent')  
         session_token=session["csrf_token"]
         form_token=request.form["csrf_token"]
         if not form_token or session_token!=form_token:
@@ -248,6 +258,7 @@ def register():
         if password !=confirm_pass:
             flash("Password not equal",category='danger')
             return redirect(url_for("register"))
+    
         
         db=get_conn()
         cursor=db.cursor()
@@ -258,9 +269,9 @@ def register():
             return redirect(url_for("register"))
         hashed_pass=generate_password_hash(password)
         cursor.execute('''
-        insert into users(username,email,password_hash)
-        values(?,?,?)
-        ''',(username,email,hashed_pass))
+        insert into users(username,email,password_hash,ipaddress)
+        values(?,?,?,?)
+        ''',(username,email,hashed_pass,ip_address))
         db.commit()
         db.close()
         return redirect(url_for("login"))
@@ -277,6 +288,9 @@ def delete(id):
 @app.route("/create_payment/<int:val>", methods=["GET"])
 def create_payment(val):
     import razorpay
+
+    RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+    RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
     if "user" not in session:
         flash("Please login first")
         return redirect(url_for("login"))
@@ -285,7 +299,7 @@ def create_payment(val):
         flash("Minimum amount should be ₹500")
         return redirect(url_for("market"))
 
-    client = razorpay.Client(auth=("rzp_test_ToAMfo3brrqbUO", "vnJ4yRy8dIu7w5rlEFZ9YgKI"))
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET ))
     # client = razorpay.Client(auth=("rzp_live_PrDxVO5r3nbrTB", "60sCmL6zRZOO91f4Yv2VzzCM"))
     order_data = {
         "amount": val * 100,  # amount in paise
@@ -293,15 +307,12 @@ def create_payment(val):
         "payment_capture": 1
     }
     payment = client.order.create(order_data)
-    return render_template("payment.html", payment=payment, val=val,key_id="rzp_test_ToAMfo3brrqbUO")
+    return render_template("payment.html", payment=payment, val=val,key_id=RAZORPAY_KEY_ID)
 
 @app.route("/payment_success", methods=["POST"])
 def payment_success():
-    from flask import request
     import razorpay
-
-    client = razorpay.Client(auth=("rzp_test_ToAMfo3brrqbUO", "vnJ4yRy8dIu7w5rlEFZ9YgKI"))
-
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET))
     data = request.form
     try:
         client.utility.verify_payment_signature({
@@ -314,7 +325,6 @@ def payment_success():
         return redirect(url_for("market"))
 
     val = int(request.form['val'])
-
     session['budget'] += val
     db = get_conn()
     cursor = db.cursor()
@@ -346,9 +356,11 @@ def reduce(val,owner_id):
         cursor.execute('''
             select * from users where id=?
         ''',(owner_id,))
-        phone_no_of_owner=cursor.fetchone()["phone"]
-        print(phone_no_of_owner)
-        flash(f"The phone number of the user is {phone_no_of_owner}")
+        seller=cursor.fetchone()
+        phone_of_owner=seller["phone"]
+        user_name=seller["username"]
+        # print(phone_no_of_owner)
+        flash(f"The phone number of the seller({user_name})  is: {phone_of_owner}")
         db.commit()
         db.close()
         # session["phone_no_of_user"]=phone_no_of_owner["phone"]
