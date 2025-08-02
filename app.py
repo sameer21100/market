@@ -496,8 +496,8 @@ def fix_postgres_sequence():
     db.close()
 @app.route("/market")
 def market():
-    fix_postgres_sequence()
-    flash("the sequence has been fixed")
+    # fix_postgres_sequence()
+    # flash("the sequence has been fixed")
 
     if "user" in session:
         db=get_conn()
