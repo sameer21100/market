@@ -1,9 +1,9 @@
 
-# Project Title
+# Credify Bazaar
 
 Credify Bazaar – A Flask-based mini-market with budget tracking and Razorpay-powered wallet top-ups.
 
-## Demo
+## Live
 
 https://market-zkot.onrender.com
 
