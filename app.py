@@ -128,7 +128,7 @@ def get_conn():
 @app.route("/",methods=["GET","POST"])
 @app.route("/home",methods=["GET","POST"])
 def main():
-    flash("No working cuzz I need to change the database system!! Everything's broke ")
+    # flash("No working cuzz I need to change the database system!! Everything's broke ")
     # create_db()
     # print(f"{os.environ.get('FLASK_ENV')} falsk asdlfalsdjfaksd")
     # print(request.form.get('form_type'))
