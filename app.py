@@ -29,7 +29,7 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 # print(f"first motha fuka issue  {RAZORPAY_KEY_SECRET}")
 
-@app.route('/download-db')
+# @app.route('/download-db')
 def download_db():
     return send_file('database.db', as_attachment=True)
 import psycopg2.extras
@@ -310,7 +310,6 @@ def add():
         return redirect(url_for("login"))
 @app.route("/login",methods=["GET","POST"])
 def login():
-    
     if "user" in session:
         flash("You are already logged in")
         return redirect(url_for("main"))
@@ -488,8 +487,17 @@ def user():
     ''')
     users=cursor.fetchall()
     return render_template("list_users.html",users=users)
+def fix_postgres_sequence():
+    db = get_conn()
+    cursor = db.cursor()
+    cursor.execute("SELECT setval('items_new_id_seq', (SELECT MAX(id) FROM items_new));")
+    db.commit()
+    cursor.close()
+    db.close()
 @app.route("/market")
 def market():
+    fix_postgres_sequence()
+    flash("the sequence has been fixed")
 
     if "user" in session:
         db=get_conn()
