@@ -5,27 +5,136 @@ import secrets
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import psycopg2
+
+from flask_sqlalchemy import SQLAlchemy
+# from sqlalchemy import create_engine, text
+
+
 # if os.environ.get("FLASK_ENV") != "production":
 # from dotenv import load_dotenv
 # load_dotenv()
+
+
+
+app=Flask(__name__)
+app.secret_key='123123123123'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 # print(f"first motha fuka issue  {RAZORPAY_KEY_SECRET}")
-app=Flask(__name__)
-app.secret_key='123123123123'
 
 @app.route('/download-db')
 def download_db():
     return send_file('database.db', as_attachment=True)
+import psycopg2.extras
+
 def get_conn():
-    conn=sqlite3.connect("database.db")
-    conn.row_factory=sqlite3.Row
-    return conn
+    return psycopg2.connect(
+        os.getenv("DATABASE_URL"),
+        cursor_factory=psycopg2.extras.RealDictCursor
+    )
 # def drop():
 #     db=get_conn()    
 #     cursor=db.cursor()
 #     cursor.execute("drop table if exists items")
 #     db.commit()
+
+
+# @app.route("/create-db")
+# def create_db():
+    flash("Data migration in progress")
+    db=get_conn()
+    cursor=db.cursor()
+    cursor.execute('''
+    drop table if exists users_new cascade''')
+    cursor.execute('''drop table if exists items_new''')
+    db.commit()
+    cursor.execute('''
+    create table if not exists users_new(
+     id  serial  primary key ,
+        username varchar(30) not null unique,
+        email varchar(100) not null unique,
+        password_hash varchar(600) not null,
+        budget int not null default 50,
+        phone varchar(10) default null,
+        ip_address varchar(50000) default null
+    )
+    
+    ''')
+
+    cursor.execute('''
+    
+    create table if not exists items_new(
+    id  serial  primary key ,
+    name varchar(100) not null,
+    barcode varchar(12) not null,
+    price varchar(2000) not null,
+    description varchar(1000) not null,
+    owner_id integer,
+    foreign key (owner_id) references users_new(id)
+    )
+    
+    ''')
+    db.commit()
+    
+    db_sqlite=sqlite3.connect("database.db")
+    db_sqlite.row_factory=sqlite3.Row
+    cursor_sqlite=db_sqlite.cursor()
+    db_pgsql=get_conn()
+    cursor_pgsql=db_pgsql.cursor()
+
+
+
+
+    cursor_sqlite.execute('''
+    select * from users
+    ''')
+    rows=cursor_sqlite.fetchall()
+    for row in rows:
+        cursor_pgsql.execute('''
+        insert into users_new (id,username,email,password_hash,budget,phone,ip_address)
+        values(%s,%s,%s,%s,%s,%s,%s)
+        ''',(
+            row["id"],
+            row["username"],
+            row["email"],
+            row["password_hash"],
+            row["budget"],
+            row["phone"],
+            row["ipaddress"]
+        ))
+    db_pgsql.commit()
+    cursor_sqlite.execute(''' 
+    select * from items_new
+    ''')
+    rows=cursor_sqlite.fetchall()
+    for row in rows:
+        cursor_pgsql.execute('''
+        insert into items_new(id,name, barcode,price,description,owner_id)
+        values(%s,%s,%s,%s,%s,%s)
+        
+        ''',(
+            row["id"],
+            row["name"],
+            row["barcode"],
+            row["price"],
+            row["description"],
+            row["owner_id"]
+        ))
+    db_pgsql.commit()
+    cursor_pgsql.close()
+    cursor_sqlite.close()
+    db_pgsql.close()
+    db_sqlite.close()
+    flash("The Data migration is successfull")
+    return redirect(url_for("main"))
+
 # def create_db():
 #     db=get_conn()
 #     cursor=db.cursor()
@@ -160,7 +269,7 @@ def add_user_phone():
         db=get_conn()
         cursor=db.cursor()
         cursor.execute('''
-        update users set phone=? where id=? 
+        update users_new set phone=%s where id=%s
         ''',(phone,session["id"]))
         db.commit()
         db.close()
@@ -186,8 +295,8 @@ def add():
             db=get_conn()
             cursor=db.cursor()
             cursor.execute('''
-            insert into items (name,barcode,price,description,owner_id)
-            values(?,?,?,?,?)''',
+            insert into items_new (name,barcode,price,description,owner_id)
+            values(%s,%s,%s,%s,%s)''',
             (name,barcode,price,description,owner_id))
             db.commit()
             flash("Item added successfully")
@@ -211,7 +320,7 @@ def login():
         db=get_conn()
         cursor=db.cursor()
         cursor.execute('''
-            select * from users where username = ?''',(username,))
+            select * from users_new where username = %s''',(username,))
         user=cursor.fetchone()
         if user and check_password_hash(user["password_hash"],password):
             session["user"]=username
@@ -268,15 +377,15 @@ def register():
         
         db=get_conn()
         cursor=db.cursor()
-        cursor.execute("select * from users where email=? or username=?",(email,username))
+        cursor.execute("select * from users_new where email=%s or username=%s",(email,username))
         lis=cursor.fetchone()
         if lis:
             flash("User already exists")
             return redirect(url_for("register"))
         hashed_pass=generate_password_hash(password)
         cursor.execute('''
-        insert into users(username,email,password_hash,ipaddress)
-        values(?,?,?,?)
+        insert into users_new(username,email,password_hash,ip_address)
+        values(%s,%s,%s,%s)
         ''',(username,email,hashed_pass,ip_address))
         db.commit()
         db.close()
@@ -286,7 +395,7 @@ def delete(id):
     db=get_conn()
     cursor=db.cursor()
     cursor.execute(''' 
-    delete from items where id=? and owner_id=?
+    delete from items_new where id=%s and owner_id=%s
     ''',(id,session['id']))
     db.commit()
     return redirect(url_for("market"))
@@ -334,9 +443,9 @@ def payment_success():
     db = get_conn()
     cursor = db.cursor()
     cursor.execute('''
-        UPDATE users
-        SET budget = ?
-        WHERE id = ?
+        UPDATE users_new
+        SET budget = %s
+        WHERE id = %s
     ''', (session['budget'], session['id']))
     db.commit()
     db.close()
@@ -353,13 +462,13 @@ def reduce(val,owner_id):
         db = get_conn()
         cursor = db.cursor()
         cursor.execute('''
-            update users
-            set budget=? 
-            where id=?
+            update users_new
+            set budget=%s
+            where id=%s
         ''', (session['budget'], session['id']))
         owner_id=int(owner_id)
         cursor.execute('''
-            select * from users where id=?
+            select * from users_new where id=%s
         ''',(owner_id,))
         seller=cursor.fetchone()
         phone_of_owner=seller["phone"]
@@ -375,7 +484,7 @@ def user():
     db=get_conn()
     cursor=db.cursor()
     cursor.execute('''
-    select * from users
+    select * from users_new
     ''')
     users=cursor.fetchall()
     return render_template("list_users.html",users=users)
@@ -385,7 +494,7 @@ def market():
     if "user" in session:
         db=get_conn()
         cursor=db.cursor()
-        cursor.execute("select * from items order by id desc")
+        cursor.execute("select * from items_new order by id desc")
         data=cursor.fetchall()
         db.close()
         return render_template("market.html",objects=data)
