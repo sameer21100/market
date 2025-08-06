@@ -1,11 +1,15 @@
 import razorpay
 import os
+from datetime import datetime,timedelta
 from flask import Flask, render_template,request, session, flash,redirect,url_for,send_file
 import secrets
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import psycopg2
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 # from sqlalchemy import create_engine, text
@@ -14,8 +18,21 @@ from flask_sqlalchemy import SQLAlchemy
 # if os.environ.get("FLASK_ENV") != "production":
 # from dotenv import load_dotenv
 # load_dotenv()
+count=0
 
-
+def clear_expired_promotions():
+    db=get_conn()
+    cursor=db.cursor()
+    cursor.execute('''
+    update items_new 
+    set is_promo=False
+    where is_promo=True and promo_expires<NOW()
+    ''')
+    db.commit()
+    db.close()
+scheduler=BackgroundScheduler()
+scheduler.add_job(func=clear_expired_promotions,trigger="interval",minutes=1)
+scheduler.start()
 
 app=Flask(__name__)
 app.secret_key='123123123123'
@@ -45,102 +62,118 @@ def get_conn():
 #     cursor.execute("drop table if exists items")
 #     db.commit()
 
-
 # @app.route("/create-db")
 # def create_db():
-    flash("Data migration in progress")
-    db=get_conn()
-    cursor=db.cursor()
-    cursor.execute('''
-    drop table if exists users_new cascade''')
-    cursor.execute('''drop table if exists items_new''')
-    db.commit()
-    cursor.execute('''
-    create table if not exists users_new(
-     id  serial  primary key ,
-        username varchar(30) not null unique,
-        email varchar(100) not null unique,
-        password_hash varchar(600) not null,
-        budget int not null default 50,
-        phone varchar(10) default null,
-        ip_address varchar(50000) default null
-    )
     
-    ''')
+#     flash("Data migration in progress")
+#     db=get_conn()
+#     cursor=db.cursor()    
+#     cursor.execute("ALTER TABLE items_new ADD COLUMN promo_expires timestamp  DEFAULT NULL;")
+#     db.commit()
+#     db.close()
 
-    cursor.execute('''
     
-    create table if not exists items_new(
-    id  serial  primary key ,
-    name varchar(100) not null,
-    barcode varchar(12) not null,
-    price varchar(2000) not null,
-    description varchar(1000) not null,
-    owner_id integer,
-    foreign key (owner_id) references users_new(id)
-    )
+    # ''')
+    # cursor.execute('''
+    # drop table if exists users_new cascade''')
+    # cursor.execute('''drop table if exists items_new''')
+    # db.commit()
+    # cursor.execute('''
+    # create table if not exists users_new(
+    #  id  serial  primary key ,
+    #     username varchar(30) not null unique,
+    #     email varchar(100) not null unique,
+    #     password_hash varchar(600) not null,
+    #     budget int not null default 50,
+    #     phone varchar(10) default null,
+    #     ip_address varchar(50000) default null
+    # )
     
-    ''')
-    db.commit()
+    # ''')
+
+    # cursor.execute('''
     
-    db_sqlite=sqlite3.connect("database.db")
-    db_sqlite.row_factory=sqlite3.Row
-    cursor_sqlite=db_sqlite.cursor()
-    db_pgsql=get_conn()
-    cursor_pgsql=db_pgsql.cursor()
+    # create table if not exists items_new(
+    # id  serial  primary key ,
+    # name varchar(100) not null,
+    # barcode varchar(12) not null,
+    # price varchar(2000) not null,
+    # description varchar(1000) not null,
+    # owner_id integer,
+    # foreign key (owner_id) references users_new(id)
+    # )
+    
+    # ''')
+    # db.commit()
+    
+    # db_sqlite=sqlite3.connect("database.db")
+    # db_sqlite.row_factory=sqlite3.Row
+    # cursor_sqlite=db_sqlite.cursor()
+    # db_pgsql=get_conn()
+    # cursor_pgsql=db_pgsql.cursor()
 
 
 
 
-    cursor_sqlite.execute('''
-    select * from users
-    ''')
-    rows=cursor_sqlite.fetchall()
-    for row in rows:
-        cursor_pgsql.execute('''
-        insert into users_new (id,username,email,password_hash,budget,phone,ip_address)
-        values(%s,%s,%s,%s,%s,%s,%s)
-        ''',(
-            row["id"],
-            row["username"],
-            row["email"],
-            row["password_hash"],
-            row["budget"],
-            row["phone"],
-            row["ipaddress"]
-        ))
-    db_pgsql.commit()
-    cursor_sqlite.execute(''' 
-    select * from items_new
-    ''')
-    rows=cursor_sqlite.fetchall()
-    for row in rows:
-        cursor_pgsql.execute('''
-        insert into items_new(id,name, barcode,price,description,owner_id)
-        values(%s,%s,%s,%s,%s,%s)
+    # cursor_sqlite.execute('''
+    # select * from users
+    # ''')
+    # rows=cursor_sqlite.fetchall()
+    # for row in rows:
+    #     cursor_pgsql.execute('''
+    #     insert into users_new (id,username,email,password_hash,budget,phone,ip_address)
+    #     values(%s,%s,%s,%s,%s,%s,%s)
+    #     ''',(
+    #         row["id"],
+    #         row["username"],
+    #         row["email"],
+    #         row["password_hash"],
+    #         row["budget"],
+    #         row["phone"],
+    #         row["ipaddress"]
+    #     ))
+    # db_pgsql.commit()
+    # cursor_sqlite.execute(''' 
+    # select * from items_new
+    # ''')
+    # rows=cursor_sqlite.fetchall()
+    # for row in rows:
+    #     cursor_pgsql.execute('''
+    #     insert into items_new(id,name, barcode,price,description,owner_id)
+    #     values(%s,%s,%s,%s,%s,%s)
         
-        ''',(
-            row["id"],
-            row["name"],
-            row["barcode"],
-            row["price"],
-            row["description"],
-            row["owner_id"]
-        ))
-    db_pgsql.commit()
-    cursor_pgsql.close()
-    cursor_sqlite.close()
-    db_pgsql.close()
-    db_sqlite.close()
-    flash("The Data migration is successfull")
-    return redirect(url_for("main"))
+    #     ''',(
+    #         row["id"],
+    #         row["name"],
+    #         row["barcode"],
+    #         row["price"],
+    #         row["description"],
+    #         row["owner_id"]
+    #     ))
+    # db_pgsql.commit()
+    # cursor_pgsql.close()
+    # cursor_sqlite.close()
+    # db_pgsql.close()
+    # db_sqlite.close()
+    # flash("The Data migration is successfull")
+    # return redirect(url_for("main"))
 
 # def create_db():
 #     db=get_conn()
 #     cursor=db.cursor()
-    # cursor.execute('''
-    #     alter table users rename to user_old2
-    # ''')       
+#     cursor.execute('''
+#      alter table items_new
+#      add column is_promo boolean default false;
+        
+#     ''')       
+#     cursor.execute('''alter table items_new 
+#     add column promo_amt integer default 0;
+#     ''')
+#     db.commit()
+#     cursor.close()
+#     db.close()
+    
+
     # cursor.execute('''
     # create table if not exists users(
     #     id integer primary key autoincrement,
@@ -237,6 +270,10 @@ def get_conn():
 @app.route("/",methods=["GET","POST"])
 @app.route("/home",methods=["GET","POST"])
 def main():
+    # count=0
+    # if count==0:
+    #     create_db()
+    #     count=count+1
     # flash("No working cuzz I need to change the database system!! Everything's broke ")
     # create_db()
     # print(f"{os.environ.get('FLASK_ENV')} falsk asdlfalsdjfaksd")
@@ -393,10 +430,19 @@ def register():
 def delete(id):
     db=get_conn()
     cursor=db.cursor()
-    cursor.execute(''' 
-    delete from items_new where id=%s and owner_id=%s
-    ''',(id,session['id']))
+    form_type=request.form.get("form_type")
+    if form_type=="depromo":
+        cursor.execute('''
+        update items_new 
+        set is_promo=%s
+        where id=%s
+        ''',(False,id))
+    elif form_type=="delete":
+        cursor.execute(''' 
+        delete from items_new where id=%s and owner_id=%s
+        ''',(id,session['id']))
     db.commit()
+    db.close()
     return redirect(url_for("market"))
 
 @app.route("/create_payment/<int:val>", methods=["GET"])
@@ -450,6 +496,32 @@ def payment_success():
     db.close()
     flash(f"₹{val} added to your budget")
     return redirect(url_for("market"))
+@app.route("/promote/<int:val>/<int:owner_id>/<int:item_id>",methods=["POST"])
+def promote(val,owner_id,item_id):
+    if session['budget']<val:
+        flash("Not enough balance, please add funds")
+        return redirect(url_for("create_payment",val=val))
+    else:
+        session['budget']=session['budget']-val
+        db=get_conn()
+        cursor=db.cursor()
+        cursor.execute('''
+        update users_new
+        set budget=%s
+        where id=%s
+        ''',(session['budget'],session['id']))
+        db.commit()
+        promo_end_time = datetime.utcnow() + timedelta(minutes=1)
+
+        cursor.execute('''
+            UPDATE items_new 
+            SET is_promo = %s,
+                promo_amt = %s,
+                promo_expires = %s
+            WHERE id = %s
+        ''', (True, val, promo_end_time, item_id))
+        db.commit()
+        return redirect(url_for("market"))
 
 @app.route("/reduce/<int:val>/<int:owner_id>", methods=["POST"])
 def reduce(val,owner_id):
@@ -472,6 +544,8 @@ def reduce(val,owner_id):
         seller=cursor.fetchone()
         phone_of_owner=seller["phone"]
         user_name=seller["username"]
+        
+        
         # print(phone_no_of_owner)
         flash(f"The phone number of the seller({user_name})  is: {phone_of_owner}")
         db.commit()
@@ -487,13 +561,15 @@ def user():
     ''')
     users=cursor.fetchall()
     return render_template("list_users.html",users=users)
-def fix_postgres_sequence():
-    db = get_conn()
-    cursor = db.cursor()
-    cursor.execute("SELECT setval('items_new_id_seq', (SELECT MAX(id) FROM items_new));")
-    db.commit()
-    cursor.close()
-    db.close()
+# def fix_postgres_sequence():
+#     db = get_conn()
+#     cursor = db.cursor()
+#     cursor.execute("SELECT setval('items_new_id_seq', (SELECT MAX(id) FROM items_new));")
+#     db.commit()
+#     cursor.close()
+#     db.close()
+
+
 @app.route("/market")
 def market():
     # fix_postgres_sequence()
@@ -502,12 +578,34 @@ def market():
     if "user" in session:
         db=get_conn()
         cursor=db.cursor()
-        cursor.execute("select * from items_new order by id desc")
+        cursor.execute("select * from items_new  where is_promo=%s order by id desc",(False,))
         data=cursor.fetchall()
+        cursor.execute('''select * from items_new where is_promo =true  order by promo_expires desc;''')
+        promoted=cursor.fetchall()
+        for item in promoted:
+            print(item['promo_expires'])
+            if item.get("promo_expires"):
+                print(item["promo_expires"])
+                expires_at = item["promo_expires"]
+                now = datetime.utcnow()
+                remaining = expires_at - now
+                item["time_remaining"] = str(remaining).split('.')[0] if remaining.total_seconds() > 0 else "Expired"
+
+
+
         db.close()
-        return render_template("market.html",objects=data)
+        return render_template("market.html",objects=data,promoted=promoted)
     else:
         flash(f"Please login first {random.randint(0,9)}","error")
         return redirect(url_for("login"))
+@app.route("/fix_sequence")
+def fix_sequence():
+    db = get_conn()
+    cursor = db.cursor()
+    cursor.execute("SELECT setval('users_new_id_seq', (SELECT MAX(id) FROM users_new));")
+    db.commit()
+    cursor.close()
+    db.close()
+    return "Sequence fixed!"
 # if __name__=="__main__":
 #     app.run(host="0.0.0.0",port=5050,debug="true")

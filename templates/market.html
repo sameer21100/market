@@ -8,6 +8,49 @@
       overflow-wrap: break-word;
     }
   </style>
+  <div class="row col-12">
+    <h2>Promoted products</h2>
+      <table class="table table-hover table-dark">
+        <thead>
+          <tr>
+            <th> Name</th>
+            <th> Price</th>
+            <th> Options</tr>
+          </tr>
+        </thead>
+        <tbody>
+            {%for item in promoted%}
+            <tr>
+              <td>
+                {{item["name"]}}
+              </td>
+              <td>
+                {{item["price"]}}
+              </td>
+              {%if session['id']==item['owner_id']%}
+              <td>
+                <form method="POST" action="/delete/{{item['id']}}" style="display:inline;">
+                  <input type="hidden" name="form_type" value="depromo">
+                  <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Are you sure you want to delete this item?');">Remove</button>
+                </form>
+              </td>
+              <td>
+                <p><strong>Time Left:</strong> {{ item['time_remaining'] }}</p>
+              </td>
+                {%endif%}
+                
+            </tr>
+            {%endfor%}
+        </tbody>
+      </table>
+
+
+  </div>
+
+
+
+
   <div class="row">
     <div class="col-12">
       <h3>
@@ -48,6 +91,7 @@
                   <button type="submit" class="btn btn-danger"
                     onclick="return confirm('Are you sure you want to delete this item?');">Delete</button>
                 </form>
+               
                 {%endif%}
               </td>
               <!-- Mobile View -->
@@ -82,8 +126,17 @@
                     </button>
                   </div>
                   <div class="modal-body">
-                    <h5 style="color:black">The description of the product: {{item["name"]}}</h5>
+                    
+                    <h5 style="color:black">{{item["name"]}}</h5>
                     <p style="color:black">{{item["description"]}}</p>
+                   {% if session['id']==item['owner_id']%}
+                    <form action="/promote/50/{{item['owner_id']}}/{{item['id']}}" method="POST">
+                      <input type="hidden" name="form_type" value="promote">
+                      <button class="btn btn-danger" type="submit" 
+                      onclick="return confirm('Do you want to promote this item')">Promote for ₹50</button>
+    
+                    </form>
+                    {%endif%}
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
