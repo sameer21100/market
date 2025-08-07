@@ -18,7 +18,6 @@ from flask_sqlalchemy import SQLAlchemy
 # if os.environ.get("FLASK_ENV") != "production":
 # from dotenv import load_dotenv
 # load_dotenv()
-count=0
 
 def clear_expired_promotions():
     db=get_conn()
@@ -45,6 +44,30 @@ db = SQLAlchemy(app)
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 # print(f"first motha fuka issue  {RAZORPAY_KEY_SECRET}")
+
+@app.route("/change-db")
+def change():
+    db=get_conn()
+    cursor=db.cursor()
+    cursor.execute('''drop table if exists items''')
+    db.commit()
+    cursor.execute('''
+    create table if not exists items (
+    id serial primary key,
+    name varchar(100) not null,
+    price varchar(2000) not null,
+    description varchar(1000) not null,
+    owner_id integer,
+    foreign key (owner_id) references users_new(id)
+    )
+    ''')
+    db.commit()
+    cursor.execute(''' insert into items(id,name,price,description,owner_id)
+    select id ,name ,price ,description ,owner_id from items_new''')
+    db.commit()
+    db.close()
+    flash("Database change succsusfull")
+    return redirect(url_for("main"))
 
 # @app.route('/download-db')
 def download_db():
@@ -324,7 +347,7 @@ def add():
             return redirect(url_for("add_user_phone"))
         if request.method=="POST":
             name=request.form["name"]
-            barcode=request.form["barcode"]
+            # barcode=request.form["barcode"]
             price=request.form["price"]
             description=request.form["description"]
             owner_id=session["id"]
@@ -332,9 +355,9 @@ def add():
             db=get_conn()
             cursor=db.cursor()
             cursor.execute('''
-            insert into items_new (name,barcode,price,description,owner_id)
+            insert into items_new (name,price,description,owner_id)
             values(%s,%s,%s,%s,%s)''',
-            (name,barcode,price,description,owner_id))
+            (name,price,description,owner_id))
             db.commit()
             flash("Item added successfully")
             return redirect(url_for('market'))
@@ -511,7 +534,7 @@ def promote(val,owner_id,item_id):
         where id=%s
         ''',(session['budget'],session['id']))
         db.commit()
-        promo_end_time = datetime.utcnow() + timedelta(minutes=1)
+        promo_end_time = datetime.utcnow() + timedelta(hours=12)
 
         cursor.execute('''
             UPDATE items_new 
@@ -608,4 +631,4 @@ def fix_sequence():
     db.close()
     return "Sequence fixed!"
 # if __name__=="__main__":
-#     app.run(host="0.0.0.0",port=5050,debug="true")
+#     app.run(host="0.0.0.0",port=,debug="true")
