@@ -23,7 +23,7 @@ def clear_expired_promotions():
     db=get_conn()
     cursor=db.cursor()
     cursor.execute('''
-    update items_new 
+    update items11
     set is_promo=False
     where is_promo=True and promo_expires<NOW()
     ''')
@@ -49,27 +49,35 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 def change():
     db=get_conn()
     cursor=db.cursor()
-    cursor.execute('''drop table if exists items''')
+    
+    cursor.execute('''SELECT setval('items11_id_seq', (SELECT MAX(id) FROM items11));''')
+    # db.commit()
+    # cursor.execute("drop table if exists items")
+    # db.commit()
+    # cursor.execute('''alter table items00 rename to items''')
+    # db.commit()
+    # cursor.execute('''
+    # create table if not exists items11 (
+    # id serial primary key,
+    # name varchar(100) not null,
+    # price varchar(2000) not null,
+    # description varchar(1000) not null,
+    # owner_id integer,
+    # promo_expires timestamp default null,
+    # is_promo boolean default false,
+    # foreign key (owner_id) references users_new(id)
+    # )
+    # ''')
     db.commit()
-    cursor.execute('''
-    create table if not exists items (
-    id serial primary key,
-    name varchar(100) not null,
-    price varchar(2000) not null,
-    description varchar(1000) not null,
-    owner_id integer,
-    foreign key (owner_id) references users_new(id)
-    )
-    ''')
-    db.commit()
-    cursor.execute(''' insert into items(id,name,price,description,owner_id)
-    select id ,name ,price ,description ,owner_id from items_new''')
-    db.commit()
+    # cursor.execute(''' insert into items11(id,name,price,description,owner_id)
+    # select id ,name ,price ,description ,owner_id from items''')
+    # db.commit()
+    # cursor.execute(''' alter table items11 rename to items_new''')
     db.close()
     flash("Database change succsusfull")
     return redirect(url_for("main"))
 
-# @app.route('/download-db')
+@app.route('/download-db')
 def download_db():
     return send_file('database.db', as_attachment=True)
 import psycopg2.extras
@@ -355,8 +363,8 @@ def add():
             db=get_conn()
             cursor=db.cursor()
             cursor.execute('''
-            insert into items_new (name,price,description,owner_id)
-            values(%s,%s,%s,%s,%s)''',
+            insert into items11 (name,price,description,owner_id)
+            values(%s,%s,%s,%s)''',
             (name,price,description,owner_id))
             db.commit()
             flash("Item added successfully")
@@ -456,13 +464,13 @@ def delete(id):
     form_type=request.form.get("form_type")
     if form_type=="depromo":
         cursor.execute('''
-        update items_new 
+        update items11
         set is_promo=%s
         where id=%s
         ''',(False,id))
     elif form_type=="delete":
         cursor.execute(''' 
-        delete from items_new where id=%s and owner_id=%s
+        delete from items11 where id=%s and owner_id=%s
         ''',(id,session['id']))
     db.commit()
     db.close()
@@ -537,12 +545,12 @@ def promote(val,owner_id,item_id):
         promo_end_time = datetime.utcnow() + timedelta(hours=12)
 
         cursor.execute('''
-            UPDATE items_new 
+            UPDATE items11
             SET is_promo = %s,
-                promo_amt = %s,
+              
                 promo_expires = %s
             WHERE id = %s
-        ''', (True, val, promo_end_time, item_id))
+        ''', (True,promo_end_time, item_id))
         db.commit()
         return redirect(url_for("market"))
 
@@ -601,9 +609,9 @@ def market():
     if "user" in session:
         db=get_conn()
         cursor=db.cursor()
-        cursor.execute("select * from items_new  where is_promo=%s order by id desc",(False,))
+        cursor.execute("select * from items11  where is_promo=%s order by id desc",(False,))
         data=cursor.fetchall()
-        cursor.execute('''select * from items_new where is_promo =true  order by promo_expires desc;''')
+        cursor.execute('''select * from items11 where is_promo =true  order by promo_expires desc;''')
         promoted=cursor.fetchall()
         for item in promoted:
             print(item['promo_expires'])
