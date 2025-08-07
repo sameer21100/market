@@ -1,20 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Payment</title>
+{%extends "parent.html"%}
+    {%block title%} Payment{%endblock%}
+    {%block content%}
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-</head>
-<body>
+    
     <h2>Pay ₹{{ val }} using Razorpay</h2>
-
+    
     <form id="razorpay-form" action="/payment_success" method="POST">
         <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
         <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
         <input type="hidden" name="razorpay_signature" id="razorpay_signature">
         <input type="hidden" name="val" value="{{ val }}">
     </form>
-
+    
     <script>
         var options = {
             "key": "{{key_id}}",
@@ -38,8 +37,8 @@
             rzp = new Razorpay(options);
             rzp.open();
         };
-    </script>
+        </script>
 
-    <button  onclick="rzp.open()">Pay ₹{{ val }}</button>
-</body>
-</html>
+<button class="btn btn-info"  onclick="rzp.open()">Pay ₹{{ val }}</button>
+
+{%endblock%}
