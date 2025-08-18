@@ -5,7 +5,7 @@ A Flask-based mini-market with budget tracking and Razorpay-powered wallet top-u
 
 ## Live
 
-https://market-zkot.onrender.com
+https://online-bazzar.onrender.com
 
 
 ## Authors
