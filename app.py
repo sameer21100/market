@@ -7,7 +7,13 @@ import random
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import psycopg2
+from psycopg2.extras import RealDictCursor
 
+def get_conn():
+    return psycopg2.connect(
+        os.getenv("DATABASE_URL"),
+        cursor_factory=RealDictCursor
+    )
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 
@@ -16,8 +22,40 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 # if os.environ.get("FLASK_ENV") != "production":
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
+
+# Connect to the database
+try:
+    connection = psycopg2.connect(
+        user=USER,
+        password=PASSWORD,
+        host=HOST,
+        port=PORT,
+        dbname=DBNAME
+    )
+    print("Connection successful!")
+    
+    # Create a cursor to execute SQL queries
+    cursor = connection.cursor()
+    
+    # Example query
+    cursor.execute("SELECT NOW();")
+    result = cursor.fetchone()
+    print("Current Time:", result)
+
+    # Close the cursor and connection
+    cursor.close()
+    connection.close()
+    print("Connection closed.")
+
+except Exception as e:
+    print(f"Failed to connect: {e}")
 
 def clear_expired_promotions():
     db=get_conn()
@@ -36,14 +74,13 @@ scheduler.start()
 app=Flask(__name__)
 app.secret_key='123123123123'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")sup
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+# db = SQLAlchemy(app)
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-# print(f"first motha fuka issue  {RAZORPAY_KEY_SECRET}")
 
 @app.route("/change-db")
 def change():
@@ -77,16 +114,12 @@ def change():
     flash("Database change succsusfull")
     return redirect(url_for("main"))
 
-@app.route('/download-db')
-def download_db():
-    return send_file('database.db', as_attachment=True)
-import psycopg2.extras
+# @app.route('/download-db')
+# def download_db():
+#     return send_file('database.db', as_attachment=True)
+# import psycopg2.extras
 
-def get_conn():
-    return psycopg2.connect(
-        os.getenv("DATABASE_URL"),
-        cursor_factory=psycopg2.extras.RealDictCursor
-    )
+
 # def drop():
 #     db=get_conn()    
 #     cursor=db.cursor()
@@ -638,5 +671,5 @@ def fix_sequence():
     cursor.close()
     db.close()
     return "Sequence fixed!"
-# if __name__=="__main__":
-#     app.run(host="0.0.0.0",port=,debug="true")
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=5050,debug="true")
