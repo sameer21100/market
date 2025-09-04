@@ -10,10 +10,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 def get_conn():
-    return psycopg2.connect(
-        os.getenv("DATABASE_URL"),
-        cursor_factory=RealDictCursor
-    )
+    return psycopg2.connect(os.getenv("DATABASE_URL"),cursor_factory=RealDictCursor)
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 
